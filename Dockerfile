@@ -1,16 +1,12 @@
 # Stage 1: Build the application
-FROM gradle:8.3-jdk23 AS build
+FROM openjdk:23-jdk-slim AS build
 WORKDIR /app
 
 # 필요한 파일 복사
-COPY build.gradle settings.gradle ./
-COPY gradle ./gradle
+COPY . .
 
-# 의존성 캐시를 위해 먼저 의존성만 다운로드
-RUN gradle build -x test --no-daemon || return 0
-
-COPY src ./src
-RUN gradle bootJar --no-daemon
+# Gradle Wrapper를 사용하여 애플리케이션 빌드
+RUN ./gradlew bootJar --no-daemon
 
 # Stage 2: Run the application
 FROM openjdk:23-jdk-slim
@@ -24,4 +20,4 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 USER appuser
 
 # 애플리케이션 실행 명령 설정
-ENTRYPOINT ["java", "-jar", "app.jar"]s
+ENTRYPOINT ["java", "-jar", "app.jar"]
